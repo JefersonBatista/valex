@@ -1,7 +1,7 @@
 import { connection } from "../database.js";
 import { mapObjectToUpdateQuery } from "../utils/sqlUtils.js";
 
-export type TransactionTypes =
+export type TransactionType =
   | "groceries"
   | "restaurant"
   | "transport"
@@ -19,7 +19,7 @@ export interface Card {
   isVirtual: boolean;
   originalCardId?: number;
   isBlocked: boolean;
-  type: TransactionTypes;
+  type: TransactionType;
 }
 
 export type CardInsertData = Omit<Card, "id">;
@@ -40,12 +40,24 @@ export async function findById(id: number) {
 }
 
 export async function findByTypeAndEmployeeId(
-  type: TransactionTypes,
+  type: TransactionType,
   employeeId: number
 ) {
-  const result = await connection.query<Card, [TransactionTypes, number]>(
+  const result = await connection.query<Card, [TransactionType, number]>(
     `SELECT * FROM cards WHERE type=$1 AND "employeeId"=$2`,
     [type, employeeId]
+  );
+
+  return result.rows[0];
+}
+
+export async function findByNumber(number: string) {
+  const result = await connection.query<Card, [string]>(
+    ` SELECT 
+        * 
+      FROM cards 
+      WHERE number=$1`,
+    [number]
   );
 
   return result.rows[0];
