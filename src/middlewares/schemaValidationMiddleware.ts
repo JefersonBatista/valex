@@ -7,7 +7,7 @@ export default function validateSchema(schema: joi.ObjectSchema) {
 
     if (validation.error) {
       return res
-        .status(422)
+        .status(400)
         .send("Todos os campos devem ser corretamente preenchidos");
     }
 

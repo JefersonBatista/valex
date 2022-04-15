@@ -25,3 +25,38 @@ export function cardNumberAlreadyExistsError() {
     message: "Já existe um cartão com esse número",
   };
 }
+
+export function cardNotFoundError() {
+  return {
+    type: "not_found",
+    message: "Não existe cartão com esse ID",
+  };
+}
+
+export function expiredCardError() {
+  return {
+    type: "forbidden",
+    message: "Esse cartão já expirou",
+  };
+}
+
+export function cardAlreadyActiveError() {
+  return {
+    type: "forbidden",
+    message: "Essa cartão já está ativado",
+  };
+}
+
+export function incorrectSecurityCodeError() {
+  return {
+    type: "forbidden",
+    message: "O código de segurança está incorreto",
+  };
+}
+
+export function invalidCardPasswordError() {
+  return {
+    type: "unprocessable_entity",
+    message: "A senha do cartão deve ter exatamente 4 dígitos",
+  };
+}

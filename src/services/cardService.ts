@@ -1,15 +1,21 @@
 import faker from "@faker-js/faker";
 import dayjs from "dayjs";
+// import customParseFormat from "dayjs/plugin/customParseFormat";
 import bcrypt from "bcrypt";
 
 import * as cardRepository from "../repositories/cardRepository.js";
 import * as companyRepository from "../repositories/companyRepository.js";
 import * as employeeRepository from "../repositories/employeeRepository.js";
 import {
+  cardAlreadyActiveError,
+  cardNotFoundError,
   cardNumberAlreadyExistsError,
   employeeAlreadyHasCardOfTypeError,
   employeeNotFoundError,
+  // expiredCardError,
+  incorrectSecurityCodeError,
   invalidApiKeyError,
+  invalidCardPasswordError,
 } from "../utils/errorUtils.js";
 
 export interface CardCreationData {
@@ -17,6 +23,12 @@ export interface CardCreationData {
   originalCardId?: number;
   type: cardRepository.TransactionType;
   apiKey: string;
+}
+
+export interface CardActivationData {
+  id: number;
+  securityCode: string;
+  password: string;
 }
 
 export async function create(data: CardCreationData) {
@@ -44,6 +56,8 @@ export async function create(data: CardCreationData) {
     isVirtual: false,
     isBlocked: false,
   });
+
+  return securityCode;
 }
 
 async function getCompanyByApiKey(apiKey: string) {
@@ -100,4 +114,50 @@ function getCardholderName(fullName: string) {
     .join(" ");
 
   return result;
+}
+
+export async function activate(data: CardActivationData) {
+  const { id, securityCode, password } = data;
+
+  const card = await getById(id);
+
+  // await checkCardExpiration(card.expirationDate);
+
+  if (card.password) throw cardAlreadyActiveError();
+
+  await checkSecurityCode(securityCode, card.securityCode);
+
+  if (!/^[0-9]{4}$/.test(password)) {
+    throw invalidCardPasswordError();
+  }
+
+  const encryptedPassword = bcrypt.hashSync(password, 12);
+  await cardRepository.update(id, { password: encryptedPassword });
+}
+
+async function getById(id: number) {
+  const card = await cardRepository.findById(id);
+
+  if (!card) {
+    throw cardNotFoundError();
+  }
+
+  return card;
+}
+
+// I need to solve the import of plugin or use an alternative
+/* async function checkCardExpiration(expirationDate: string) {
+  dayjs.extend(customParseFormat);
+  if (dayjs().isAfter(dayjs(expirationDate, "MM/YY"))) {
+    throw expiredCardError();
+  }
+} */
+
+async function checkSecurityCode(
+  securityCode: string,
+  encryptedSecurityCode: string
+) {
+  if (!bcrypt.compareSync(securityCode, encryptedSecurityCode)) {
+    throw incorrectSecurityCodeError();
+  }
 }

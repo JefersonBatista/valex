@@ -8,4 +8,6 @@ const cardRouter = Router();
 
 cardRouter.post("/cards", validateSchema(cardSchema), cardController.create);
 
+cardRouter.patch("/cards/:id/activate", cardController.activate);
+
 export default cardRouter;
