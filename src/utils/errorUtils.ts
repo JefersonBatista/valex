@@ -12,7 +12,7 @@ export function employeeNotFoundError() {
   };
 }
 
-export function employeeAlreadyHasCardError() {
+export function employeeAlreadyHasCardOfTypeError() {
   return {
     type: "conflict",
     message: "O empregado já possui um cartão desse tipo",

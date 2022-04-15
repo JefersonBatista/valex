@@ -7,7 +7,7 @@ import * as companyRepository from "../repositories/companyRepository.js";
 import * as employeeRepository from "../repositories/employeeRepository.js";
 import {
   cardNumberAlreadyExistsError,
-  employeeAlreadyHasCardError,
+  employeeAlreadyHasCardOfTypeError,
   employeeNotFoundError,
   invalidApiKeyError,
 } from "../utils/errorUtils.js";
@@ -20,32 +20,13 @@ export interface CardCreationData {
 }
 
 export async function create(data: CardCreationData) {
-  const company = await companyRepository.findByApiKey(data.apiKey);
+  const company = await getCompanyByApiKey(data.apiKey);
 
-  if (!company) {
-    throw invalidApiKeyError();
-  }
-  const employee = await employeeRepository.findById(data.employeeId);
-
-  if (!employee || employee.companyId !== company.id) {
-    throw employeeNotFoundError();
-  }
-
-  const existingCardOfEmployee = await cardRepository.findByTypeAndEmployeeId(
-    data.type,
-    employee.id
-  );
-
-  if (existingCardOfEmployee) {
-    throw employeeAlreadyHasCardError();
-  }
+  const employee = await getEmployeeOfCompany(data.employeeId, company.id);
+  await checkEmployeeAlreadyHasCardOfType(employee.id, data.type);
 
   const number = faker.finance.creditCardNumber("mastercard");
-  const existingCardWithNumber = await cardRepository.findByNumber(number);
-
-  if (existingCardWithNumber) {
-    throw cardNumberAlreadyExistsError();
-  }
+  await checkCardNumberAlreadyExists(number);
 
   const cardholderName = getCardholderName(employee.fullName);
 
@@ -63,6 +44,48 @@ export async function create(data: CardCreationData) {
     isVirtual: false,
     isBlocked: false,
   });
+}
+
+async function getCompanyByApiKey(apiKey: string) {
+  const company = await companyRepository.findByApiKey(apiKey);
+
+  if (!company) {
+    throw invalidApiKeyError();
+  }
+
+  return company;
+}
+
+async function getEmployeeOfCompany(employeeId: number, companyId: number) {
+  const employee = await employeeRepository.findById(employeeId);
+
+  if (!employee || employee.companyId !== companyId) {
+    throw employeeNotFoundError();
+  }
+
+  return employee;
+}
+
+async function checkEmployeeAlreadyHasCardOfType(
+  employeeId: number,
+  type: cardRepository.TransactionType
+) {
+  const existingCardOfEmployee = await cardRepository.findByTypeAndEmployeeId(
+    type,
+    employeeId
+  );
+
+  if (existingCardOfEmployee) {
+    throw employeeAlreadyHasCardOfTypeError();
+  }
+}
+
+async function checkCardNumberAlreadyExists(number: string) {
+  const existingCardWithNumber = await cardRepository.findByNumber(number);
+
+  if (existingCardWithNumber) {
+    throw cardNumberAlreadyExistsError();
+  }
 }
 
 function getCardholderName(fullName: string) {
