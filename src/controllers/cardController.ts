@@ -44,3 +44,18 @@ export async function getBalanceAndTransactions(req: Request, res: Response) {
 
   res.send(balanceAndTransactions);
 }
+
+export async function recharge(req: Request, res: Response) {
+  const id: number = +req.params.id;
+  const amount: number = +req.body.amount;
+
+  if (!amount || amount <= 0) {
+    return res.status(400).send("A quantia deve ser maior que zero");
+  }
+
+  const companyId = res.locals.company.id;
+
+  await cardService.recharge(id, amount, companyId);
+
+  res.sendStatus(200);
+}

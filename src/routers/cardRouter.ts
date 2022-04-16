@@ -18,4 +18,6 @@ cardRouter.patch("/cards/:id/activate", cardController.activate);
 
 cardRouter.get("/cards/:id", cardController.getBalanceAndTransactions);
 
+cardRouter.post("/cards/:id/recharge", validateApiKey, cardController.recharge);
+
 export default cardRouter;

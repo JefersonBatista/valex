@@ -194,3 +194,14 @@ export async function checkCardPassword(id: number, password: string) {
     throw incorrectCardPasswordError();
   }
 }
+
+export async function recharge(id: number, amount: number, companyId: number) {
+  const card = await getById(id);
+
+  // Check if the recharged card is of a employee of the company
+  await getEmployeeOfCompany(card.employeeId, companyId);
+
+  checkCardExpiration(card.expirationDate);
+
+  await rechargeRepository.insert({ cardId: id, amount });
+}
