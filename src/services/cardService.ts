@@ -1,6 +1,5 @@
 import faker from "@faker-js/faker";
 import dayjs from "dayjs";
-// import customParseFormat from "dayjs/plugin/customParseFormat";
 import bcrypt from "bcrypt";
 
 import * as cardRepository from "../repositories/cardRepository.js";
@@ -12,7 +11,7 @@ import {
   cardNumberAlreadyExistsError,
   employeeAlreadyHasCardOfTypeError,
   employeeNotFoundError,
-  // expiredCardError,
+  expiredCardError,
   incorrectSecurityCodeError,
   invalidApiKeyError,
   invalidCardPasswordError,
@@ -121,11 +120,11 @@ export async function activate(data: CardActivationData) {
 
   const card = await getById(id);
 
-  // await checkCardExpiration(card.expirationDate);
+  checkCardExpiration(card.expirationDate);
 
   if (card.password) throw cardAlreadyActiveError();
 
-  await checkSecurityCode(securityCode, card.securityCode);
+  checkSecurityCode(securityCode, card.securityCode);
 
   if (!/^[0-9]{4}$/.test(password)) {
     throw invalidCardPasswordError();
@@ -145,15 +144,24 @@ async function getById(id: number) {
   return card;
 }
 
-// I need to solve the import of plugin or use an alternative
-/* async function checkCardExpiration(expirationDate: string) {
-  dayjs.extend(customParseFormat);
-  if (dayjs().isAfter(dayjs(expirationDate, "MM/YY"))) {
-    throw expiredCardError();
-  }
-} */
+function checkCardExpiration(expirationDate: string) {
+  const month: number = dayjs().get("month") + 1;
+  // Get current year in the format 'YY'
+  const year: number = dayjs().get("year") % 100;
+  const expirationDateData = expirationDate.split("/");
+  const expirationMonth: number = +expirationDateData[0];
+  const expirationYear: number = +expirationDateData[1];
 
-async function checkSecurityCode(
+  if (year > expirationYear) {
+    throw expiredCardError();
+  } else if (year === expirationYear) {
+    if (month >= expirationMonth) {
+      throw expiredCardError();
+    }
+  }
+}
+
+function checkSecurityCode(
   securityCode: string,
   encryptedSecurityCode: string
 ) {
