@@ -5,6 +5,8 @@ import bcrypt from "bcrypt";
 import * as cardRepository from "../repositories/cardRepository.js";
 import * as companyRepository from "../repositories/companyRepository.js";
 import * as employeeRepository from "../repositories/employeeRepository.js";
+import * as rechargeRepository from "../repositories/rechargeRepository.js";
+import * as paymentRepository from "../repositories/paymentRepository.js";
 import {
   cardAlreadyActiveError,
   cardNotFoundError,
@@ -17,17 +19,21 @@ import {
   invalidCardPasswordError,
 } from "../utils/errorUtils.js";
 
-export interface CardCreationData {
+interface CardCreationData {
   employeeId: number;
   originalCardId?: number;
   type: cardRepository.TransactionType;
   apiKey: string;
 }
 
-export interface CardActivationData {
+interface CardActivationData {
   id: number;
   securityCode: string;
   password: string;
+}
+
+interface HasAmount {
+  amount: number;
 }
 
 export async function create(data: CardCreationData) {
@@ -168,4 +174,28 @@ function checkSecurityCode(
   if (!bcrypt.compareSync(securityCode, encryptedSecurityCode)) {
     throw incorrectSecurityCodeError();
   }
+}
+
+export async function getBalanceAndTransactions(id: number) {
+  await getById(id);
+
+  const recharges = await rechargeRepository.findByCardId(id);
+  const rechargesSum = getAmountSum(recharges);
+
+  const payments = await paymentRepository.findByCardId(id);
+  const paymentsSum = getAmountSum(payments);
+
+  return {
+    balance: rechargesSum - paymentsSum,
+    transactions: payments,
+    recharges,
+  };
+}
+
+function getAmountSum(items: HasAmount[]) {
+  const sum = items
+    .map((item) => item.amount)
+    .reduce((acc, cur) => acc + cur, 0);
+
+  return sum;
 }

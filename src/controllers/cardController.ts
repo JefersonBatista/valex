@@ -34,3 +34,13 @@ export async function activate(req: Request, res: Response) {
   await cardService.activate({ id, securityCode, password });
   res.sendStatus(200);
 }
+
+export async function getBalanceAndTransactions(req: Request, res: Response) {
+  const id: number = +req.params.id;
+
+  const balanceAndTransactions = await cardService.getBalanceAndTransactions(
+    id
+  );
+
+  res.send(balanceAndTransactions);
+}

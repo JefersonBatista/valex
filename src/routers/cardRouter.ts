@@ -10,4 +10,6 @@ cardRouter.post("/cards", validateSchema(cardSchema), cardController.create);
 
 cardRouter.patch("/cards/:id/activate", cardController.activate);
 
+cardRouter.get("/cards/:id", cardController.getBalanceAndTransactions);
+
 export default cardRouter;
