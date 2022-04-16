@@ -3,7 +3,6 @@ import dayjs from "dayjs";
 import bcrypt from "bcrypt";
 
 import * as cardRepository from "../repositories/cardRepository.js";
-import * as companyRepository from "../repositories/companyRepository.js";
 import * as employeeRepository from "../repositories/employeeRepository.js";
 import * as rechargeRepository from "../repositories/rechargeRepository.js";
 import * as paymentRepository from "../repositories/paymentRepository.js";
@@ -14,6 +13,7 @@ import {
   employeeAlreadyHasCardOfTypeError,
   employeeNotFoundError,
   expiredCardError,
+  incorrectCardPasswordError,
   incorrectSecurityCodeError,
   invalidApiKeyError,
   invalidCardPasswordError,
@@ -21,9 +21,8 @@ import {
 
 interface CardCreationData {
   employeeId: number;
-  originalCardId?: number;
   type: cardRepository.TransactionType;
-  apiKey: string;
+  companyId: number;
 }
 
 interface CardActivationData {
@@ -37,9 +36,7 @@ interface HasAmount {
 }
 
 export async function create(data: CardCreationData) {
-  const company = await getCompanyByApiKey(data.apiKey);
-
-  const employee = await getEmployeeOfCompany(data.employeeId, company.id);
+  const employee = await getEmployeeOfCompany(data.employeeId, data.companyId);
   await checkEmployeeAlreadyHasCardOfType(employee.id, data.type);
 
   const number = faker.finance.creditCardNumber("mastercard");
@@ -63,16 +60,6 @@ export async function create(data: CardCreationData) {
   });
 
   return securityCode;
-}
-
-async function getCompanyByApiKey(apiKey: string) {
-  const company = await companyRepository.findByApiKey(apiKey);
-
-  if (!company) {
-    throw invalidApiKeyError();
-  }
-
-  return company;
 }
 
 async function getEmployeeOfCompany(employeeId: number, companyId: number) {
@@ -198,4 +185,12 @@ function getAmountSum(items: HasAmount[]) {
     .reduce((acc, cur) => acc + cur, 0);
 
   return sum;
+}
+
+export async function checkCardPassword(id: number, password: string) {
+  const card = await cardRepository.findById(id);
+
+  if (!bcrypt.compareSync(password, card.password)) {
+    throw incorrectCardPasswordError();
+  }
 }

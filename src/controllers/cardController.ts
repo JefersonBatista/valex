@@ -3,15 +3,15 @@ import { Request, Response } from "express";
 import * as cardService from "../services/cardService.js";
 
 export async function create(req: Request, res: Response) {
-  const apiKey = req.headers["x-api-key"]?.toString();
-
-  if (!apiKey) {
-    return res.status(401).send("Nenhuma chave de API informada");
-  }
-
   const { employeeId, type } = req.body;
 
-  const securityCode = await cardService.create({ employeeId, type, apiKey });
+  const companyId = res.locals.company.id;
+
+  const securityCode = await cardService.create({
+    employeeId,
+    type,
+    companyId,
+  });
 
   res.status(201).send({ securityCode });
 }
