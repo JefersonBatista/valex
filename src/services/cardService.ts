@@ -13,6 +13,7 @@ import {
   employeeAlreadyHasCardOfTypeError,
   employeeNotFoundError,
   expiredCardError,
+  inactiveCardError,
   incorrectCardPasswordError,
   incorrectSecurityCodeError,
   invalidCardPasswordError,
@@ -173,7 +174,11 @@ export async function checkCardPassword(id: number, password: string) {
     throw invalidCardPasswordError();
   }
 
-  const card = await cardRepository.findById(id);
+  const card = await getById(id);
+
+  if (!card.password) {
+    throw inactiveCardError();
+  }
 
   if (!bcrypt.compareSync(password, card.password)) {
     throw incorrectCardPasswordError();

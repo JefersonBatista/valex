@@ -100,3 +100,7 @@ export function insufficientFundsError(): Error {
     message: "O saldo do cartão é insuficiente para efetuar o pagamento",
   };
 }
+
+export function inactiveCardError(): Error {
+  return { type: "forbidden", message: "O cartão ainda não foi ativado" };
+}
