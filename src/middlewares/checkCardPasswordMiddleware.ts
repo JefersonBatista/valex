@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 
 import * as cardService from "../services/cardService.js";
 
-export async function checkCardPassword(
+export default async function checkCardPassword(
   req: Request,
   res: Response,
   next: NextFunction
@@ -11,4 +11,6 @@ export async function checkCardPassword(
   const password: string = req.body.password;
 
   await cardService.checkCardPassword(cardId, password);
+
+  next();
 }

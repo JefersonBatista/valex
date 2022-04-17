@@ -16,7 +16,7 @@ cardRouter.post(
 
 cardRouter.patch("/cards/:id/activate", cardController.activate);
 
-cardRouter.get("/cards/:id", cardController.getBalanceAndTransactions);
+cardRouter.get("/cards/:id/balance", cardController.getBalanceAndTransactions);
 
 cardRouter.post("/cards/:id/recharge", validateApiKey, cardController.recharge);
 

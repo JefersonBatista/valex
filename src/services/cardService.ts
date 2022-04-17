@@ -2,8 +2,8 @@ import faker from "@faker-js/faker";
 import dayjs from "dayjs";
 import bcrypt from "bcrypt";
 
+import * as employeeService from "../services/employeeService.js";
 import * as cardRepository from "../repositories/cardRepository.js";
-import * as employeeRepository from "../repositories/employeeRepository.js";
 import * as rechargeRepository from "../repositories/rechargeRepository.js";
 import * as paymentRepository from "../repositories/paymentRepository.js";
 import {
@@ -15,7 +15,6 @@ import {
   expiredCardError,
   incorrectCardPasswordError,
   incorrectSecurityCodeError,
-  invalidApiKeyError,
   invalidCardPasswordError,
 } from "../utils/errorUtils.js";
 
@@ -36,8 +35,14 @@ interface HasAmount {
 }
 
 export async function create(data: CardCreationData) {
-  const employee = await getEmployeeOfCompany(data.employeeId, data.companyId);
-  await checkEmployeeAlreadyHasCardOfType(employee.id, data.type);
+  const employee = await employeeService.getEmployeeOfCompany(
+    data.employeeId,
+    data.companyId
+  );
+  await employeeService.checkEmployeeAlreadyHasCardOfType(
+    employee.id,
+    data.type
+  );
 
   const number = faker.finance.creditCardNumber("mastercard");
   await checkCardNumberAlreadyExists(number);
@@ -60,30 +65,6 @@ export async function create(data: CardCreationData) {
   });
 
   return securityCode;
-}
-
-async function getEmployeeOfCompany(employeeId: number, companyId: number) {
-  const employee = await employeeRepository.findById(employeeId);
-
-  if (!employee || employee.companyId !== companyId) {
-    throw employeeNotFoundError();
-  }
-
-  return employee;
-}
-
-async function checkEmployeeAlreadyHasCardOfType(
-  employeeId: number,
-  type: cardRepository.TransactionType
-) {
-  const existingCardOfEmployee = await cardRepository.findByTypeAndEmployeeId(
-    type,
-    employeeId
-  );
-
-  if (existingCardOfEmployee) {
-    throw employeeAlreadyHasCardOfTypeError();
-  }
 }
 
 async function checkCardNumberAlreadyExists(number: string) {
@@ -127,7 +108,7 @@ export async function activate(data: CardActivationData) {
   await cardRepository.update(id, { password: encryptedPassword });
 }
 
-async function getById(id: number) {
+export async function getById(id: number) {
   const card = await cardRepository.findById(id);
 
   if (!card) {
@@ -137,7 +118,7 @@ async function getById(id: number) {
   return card;
 }
 
-function checkCardExpiration(expirationDate: string) {
+export function checkCardExpiration(expirationDate: string) {
   const month: number = dayjs().get("month") + 1;
   // Get current year in the format 'YY'
   const year: number = dayjs().get("year") % 100;
@@ -188,6 +169,10 @@ function getAmountSum(items: HasAmount[]) {
 }
 
 export async function checkCardPassword(id: number, password: string) {
+  if (!/^[0-9]{4}$/.test(password)) {
+    throw invalidCardPasswordError();
+  }
+
   const card = await cardRepository.findById(id);
 
   if (!bcrypt.compareSync(password, card.password)) {
@@ -199,7 +184,7 @@ export async function recharge(id: number, amount: number, companyId: number) {
   const card = await getById(id);
 
   // Check if the recharged card is of a employee of the company
-  await getEmployeeOfCompany(card.employeeId, companyId);
+  await employeeService.getEmployeeOfCompany(card.employeeId, companyId);
 
   checkCardExpiration(card.expirationDate);
 

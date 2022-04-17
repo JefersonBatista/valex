@@ -79,3 +79,24 @@ export function incorrectCardPasswordError(): Error {
     message: "Senha incorreta",
   };
 }
+
+export function businessNotFoundError(): Error {
+  return {
+    type: "not_found",
+    message: "Não existe estabelecimento com esse ID",
+  };
+}
+
+export function cardAndBusinessTypesDoNotMatchError(): Error {
+  return {
+    type: "forbidden",
+    message: "Os tipos do cartão e do estabelecimento não conferem",
+  };
+}
+
+export function insufficientFundsError(): Error {
+  return {
+    type: "forbidden",
+    message: "O saldo do cartão é insuficiente para efetuar o pagamento",
+  };
+}

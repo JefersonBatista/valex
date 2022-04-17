@@ -57,5 +57,5 @@ export async function recharge(req: Request, res: Response) {
 
   await cardService.recharge(id, amount, companyId);
 
-  res.sendStatus(200);
+  res.sendStatus(201);
 }
