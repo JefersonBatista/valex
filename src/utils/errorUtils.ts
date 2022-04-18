@@ -54,14 +54,14 @@ export function expiredCardError(): Error {
 
 export function cardAlreadyActiveError(): Error {
   return {
-    type: "forbidden",
-    message: "Essa cartão já está ativado",
+    type: "conflict",
+    message: "Esse cartão já está ativado",
   };
 }
 
 export function incorrectSecurityCodeError(): Error {
   return {
-    type: "forbidden",
+    type: "unauthorized",
     message: "O código de segurança está incorreto",
   };
 }
