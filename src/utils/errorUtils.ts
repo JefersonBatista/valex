@@ -104,3 +104,10 @@ export function insufficientFundsError(): Error {
 export function inactiveCardError(): Error {
   return { type: "forbidden", message: "O cartão ainda não foi ativado" };
 }
+
+export function cardIsBlockedError(): Error {
+  return {
+    type: "forbidden",
+    message: "O cartão está bloqueado",
+  };
+}

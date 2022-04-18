@@ -8,10 +8,9 @@ import * as rechargeRepository from "../repositories/rechargeRepository.js";
 import * as paymentRepository from "../repositories/paymentRepository.js";
 import {
   cardAlreadyActiveError,
+  cardIsBlockedError,
   cardNotFoundError,
   cardNumberAlreadyExistsError,
-  employeeAlreadyHasCardOfTypeError,
-  employeeNotFoundError,
   expiredCardError,
   inactiveCardError,
   incorrectCardPasswordError,
@@ -194,4 +193,16 @@ export async function recharge(id: number, amount: number, companyId: number) {
   checkCardExpiration(card.expirationDate);
 
   await rechargeRepository.insert({ cardId: id, amount });
+}
+
+export async function block(id: number) {
+  const card = await getById(id);
+
+  checkCardExpiration(card.expirationDate);
+
+  if (card.isBlocked) {
+    throw cardIsBlockedError();
+  }
+
+  await cardRepository.update(id, { isBlocked: true });
 }

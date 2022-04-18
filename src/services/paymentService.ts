@@ -4,6 +4,7 @@ import * as paymentRepository from "../repositories/paymentRepository.js";
 import {
   cardAndBusinessTypesDoNotMatchError,
   insufficientFundsError,
+  cardIsBlockedError,
 } from "../utils/errorUtils.js";
 
 interface PaymentData {
@@ -16,6 +17,10 @@ export async function perform(data: PaymentData) {
   const { cardId, businessId, amount } = data;
 
   const card = await cardService.getById(cardId);
+
+  if (card.isBlocked) {
+    throw cardIsBlockedError();
+  }
 
   cardService.checkCardExpiration(card.expirationDate);
 

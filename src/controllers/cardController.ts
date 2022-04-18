@@ -59,3 +59,11 @@ export async function recharge(req: Request, res: Response) {
 
   res.sendStatus(201);
 }
+
+export async function block(req: Request, res: Response) {
+  const id: number = +req.body.cardId;
+
+  await cardService.block(id);
+
+  res.sendStatus(200);
+}
