@@ -41,7 +41,7 @@ export function cardNumberAlreadyExistsError(): Error {
 export function cardNotFoundError(): Error {
   return {
     type: "not_found",
-    message: "Não existe cartão com esse ID",
+    message: "O cartão não foi encontrado",
   };
 }
 
@@ -83,7 +83,7 @@ export function incorrectCardPasswordError(): Error {
 export function businessNotFoundError(): Error {
   return {
     type: "not_found",
-    message: "Não existe estabelecimento com esse ID",
+    message: "O estabelecimento não foi encontrado",
   };
 }
 

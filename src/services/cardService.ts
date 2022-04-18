@@ -95,15 +95,13 @@ export async function activate(data: CardActivationData) {
 
   const card = await getById(id);
 
+  checkSecurityCode(securityCode, card.securityCode);
+
   checkCardExpiration(card.expirationDate);
 
   if (card.password) throw cardAlreadyActiveError();
 
-  checkSecurityCode(securityCode, card.securityCode);
-
-  if (!/^[0-9]{4}$/.test(password)) {
-    throw invalidCardPasswordError();
-  }
+  validatePassword(password);
 
   const encryptedPassword = bcrypt.hashSync(password, 12);
   await cardRepository.update(id, { password: encryptedPassword });
@@ -136,7 +134,7 @@ export function checkCardExpiration(expirationDate: string) {
   }
 }
 
-function checkSecurityCode(
+export function checkSecurityCode(
   securityCode: string,
   encryptedSecurityCode: string
 ) {
@@ -170,9 +168,7 @@ function getAmountSum(items: HasAmount[]) {
 }
 
 export async function checkCardPassword(id: number, password: string) {
-  if (!/^[0-9]{4}$/.test(password)) {
-    throw invalidCardPasswordError();
-  }
+  validatePassword(password);
 
   const card = await getById(id);
 
@@ -218,4 +214,28 @@ export async function unlock(id: number) {
   }
 
   await cardRepository.update(id, { isBlocked: false });
+}
+
+function validatePassword(password: string) {
+  if (!/^[0-9]{4}$/.test(password)) {
+    throw invalidCardPasswordError();
+  }
+}
+
+export async function getByDetails(
+  number: string,
+  name: string,
+  expirationDate: string
+) {
+  const card = await cardRepository.findByCardDetails(
+    number,
+    name,
+    expirationDate
+  );
+
+  if (!card) {
+    throw cardNotFoundError();
+  }
+
+  return card;
 }
