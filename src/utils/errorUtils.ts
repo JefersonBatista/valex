@@ -111,3 +111,10 @@ export function cardIsBlockedError(): Error {
     message: "O cartão está bloqueado",
   };
 }
+
+export function cardIsAlreadyUnlockedError(): Error {
+  return {
+    type: "conflict",
+    message: "O cartão já está desbloqueado",
+  };
+}

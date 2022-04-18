@@ -8,6 +8,7 @@ import * as rechargeRepository from "../repositories/rechargeRepository.js";
 import * as paymentRepository from "../repositories/paymentRepository.js";
 import {
   cardAlreadyActiveError,
+  cardIsAlreadyUnlockedError,
   cardIsBlockedError,
   cardNotFoundError,
   cardNumberAlreadyExistsError,
@@ -205,4 +206,16 @@ export async function block(id: number) {
   }
 
   await cardRepository.update(id, { isBlocked: true });
+}
+
+export async function unlock(id: number) {
+  const card = await getById(id);
+
+  checkCardExpiration(card.expirationDate);
+
+  if (!card.isBlocked) {
+    throw cardIsAlreadyUnlockedError();
+  }
+
+  await cardRepository.update(id, { isBlocked: false });
 }

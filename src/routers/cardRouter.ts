@@ -23,4 +23,6 @@ cardRouter.post("/cards/:id/recharge", validateApiKey, cardController.recharge);
 
 cardRouter.patch("/cards/block", checkCardPassword, cardController.block);
 
+cardRouter.patch("/cards/unlock", checkCardPassword, cardController.unlock);
+
 export default cardRouter;

@@ -67,3 +67,11 @@ export async function block(req: Request, res: Response) {
 
   res.sendStatus(200);
 }
+
+export async function unlock(req: Request, res: Response) {
+  const id: number = +req.body.cardId;
+
+  await cardService.unlock(id);
+
+  res.sendStatus(200);
+}
